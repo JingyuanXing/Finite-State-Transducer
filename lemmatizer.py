@@ -3,8 +3,6 @@ from fststr import fststr
 import pywrapfst as fst
 import os
 
-path = 'FST'
-
 class Lemmatizer():
     
     ### read one input file
@@ -17,12 +15,11 @@ class Lemmatizer():
         ### read content of all files in the 'FST' folder
         ### union all the FST
         st = fststr.symbols_table_from_alphabet(fststr.EN_SYMB)
-        for file in os.listdir(path):
-            fst_file = self.read_input_file('FST/'+file)
-            compiler = fst.Compiler(isymbols=st, osymbols=st, keep_isymbols=True, keep_osymbols=True)
-            print(fst_file, file=compiler)
-            self.myFST = compiler.compile()
-            fststr.expand_other_symbols(self.myFST)
+        fst_file = self.read_input_file('FST_mine.txt')#self.read_input_file('FST/'+file)
+        compiler = fst.Compiler(isymbols=st, osymbols=st, keep_isymbols=True, keep_osymbols=True)
+        print(fst_file, file=compiler)
+        self.myFST = compiler.compile()
+        fststr.expand_other_symbols(self.myFST)
 
     # build a FST works for just in_vocab_words in section 2.1, based on the dictionary file
     def buildInVocabFST(self): 
@@ -30,6 +27,7 @@ class Lemmatizer():
         dict_file = open('in_vocab_dictionary_verbs.txt', 'r')
         # read each line of the file
         dict_lines = dict_file.readlines()
+
         for line in dict_lines:
             # make each line into a list of three 
             line = line.strip()
@@ -59,6 +57,13 @@ class Lemmatizer():
 
 l = Lemmatizer()
 l.buildInVocabFST()
+
+
+
+
+
+
+
 
 
 

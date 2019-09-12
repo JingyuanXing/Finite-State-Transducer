@@ -3,6 +3,8 @@ from fststr import fststr
 import pywrapfst as fst
 import os
 
+# Hey! Just trying git!
+
 class Lemmatizer():
     
     ### read one input file

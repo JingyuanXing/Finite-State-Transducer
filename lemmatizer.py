@@ -3,7 +3,7 @@ from fststr import fststr
 import pywrapfst as fst
 import os
 
-# Aother try for git, with ssh
+# Third try with git, to avoid password
 
 class Lemmatizer():
     

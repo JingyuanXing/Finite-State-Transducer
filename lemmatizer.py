@@ -8,8 +8,7 @@ import os
 class Lemmatizer():
 
     def __init__(self):
-        ### read content of all files in the 'FST' folder
-        ### union all the FST
+        # get the symbol table ready
         st = fststr.symbols_table_from_alphabet(fststr.EN_SYMB)
         return
 

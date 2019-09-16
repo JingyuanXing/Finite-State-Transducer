@@ -1,0 +1,8 @@
+0
+0 0 <other> <other>
+0 0 <#> <#>
+0 1 s <epsilon>
+1 1 s s
+1 0 <other> s<other>
+1 2 # <^>s<#>
+2

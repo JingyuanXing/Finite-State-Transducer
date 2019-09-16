@@ -1,0 +1,14 @@
+0
+0 0 <other> <other>
+0 0 <#> <#>
+0 1 i <epsilon>
+1 0 <other> i<other>
+1 1 i i
+1 2 n <epsilon>
+2 1 i in
+2 0 <other> in<other>
+2 3 g <epsilon>
+3 1 i ing
+3 0 <other> ing<other>
+3 4 <#> <^>ing<#>
+4

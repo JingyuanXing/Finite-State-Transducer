@@ -35,8 +35,24 @@ class Lemmatizer():
             line = line.strip()
             line = line.rstrip(',')
             lineList = line.split(',')
-            print(lineList)
+            # print(lineList)
             # now build and update FST base on each line
+            s = ''
+            for i in range(len(lineList[1])):
+                try:
+                    s+='{} {} {} {}\n'.format(i,i+1,lineList[1][i],lineList[0][i])
+                except:
+                    s+='{} {} {} <epsilon>\n'.format(i,i+1,lineList[1][i])
+            s+='{} {} <epsilon> +Known\n{}\n'.format(len(lineList[1]),len(lineList[1])+1, len(lineList[1])+1)
+            # print(s)
+            # now union current FST into the myFST
+            st = fststr.symbols_table_from_alphabet(fststr.EN_SYMB)
+            compiler = fst.Compiler(isymbols=st, osymbols=st, keep_isymbols=True, keep_osymbols=True)
+            print(s, file=compiler)
+            currFST = compiler.compile()
+            self.myFST.union(currFST)
+
+
 
     def lemmatize(self, input_str):
         # input ex. giving<#>
@@ -57,8 +73,9 @@ class Lemmatizer():
         return
 
 
+
 l = Lemmatizer()
-l.buildInVocabFST()
+#l.buildInVocabFST()
 
 
 

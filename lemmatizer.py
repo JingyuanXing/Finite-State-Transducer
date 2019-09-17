@@ -41,8 +41,9 @@ class Lemmatizer():
                     s+='{} {} {} {}\n'.format(i,i+1,lineList[1][i],lineList[0][i])
                 except:
                     s+='{} {} {} <epsilon>\n'.format(i,i+1,lineList[1][i])
-            s+='{} {} <epsilon> +Known\n{}\n'.format(len(lineList[1]),len(lineList[1])+1, len(lineList[1])+1)
-            # print(s)
+            s+='{} {} <#> <epsilon>\n'.format(len(lineList[1]),len(lineList[1])+1)
+            s+='{} {} <epsilon> +Known\n{}\n'.format(len(lineList[1])+1,len(lineList[1])+2, len(lineList[1])+2)
+            print(s)
             # now union current FST into the initFST1
             compiler = fst.Compiler(isymbols=st, osymbols=st, keep_isymbols=True, keep_osymbols=True)
             print(s, file=compiler)
@@ -150,7 +151,7 @@ l = Lemmatizer()
 
 # l.buildInVocabFST()
 
-# lemma_test = 'aahing'
+# lemma_test = 'aahing<#>'
 # print("input: ", lemma_test)
 # print("output: ", l.runtask1(lemma_test))
 
@@ -212,8 +213,11 @@ l = Lemmatizer()
 
 # consonants, didn't test yet
 # task3_test = 'squigg<^>ing<#>'
-print("input: ", task3_test)
-print("output: ", l.runtask3(task3_test))
+# print("input: ", task3_test)
+# print("output: ", l.runtask3(task3_test))
+
+
+
 
 
 

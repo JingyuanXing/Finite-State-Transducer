@@ -64,25 +64,39 @@ class Lemmatizer():
 
         # read morph FST txt files
         morph_files = [filename for filename in os.listdir('.') if filename.startswith("FST_morph_")]
-        # print(morph_files)
+        print(morph_files)
         for f in morph_files:
             compiler = fst.Compiler(isymbols=st, osymbols=st, keep_isymbols=True, keep_osymbols=True)
             morph = open(f).read()
             print(morph, file=compiler)
             morph_FST = compiler.compile()
+            fststr.expand_other_symbols(morph_FST)
             initFST2 = initFST2.union(morph_FST)
 
+        # compiler = fst.Compiler(isymbols=st, osymbols=st, keep_isymbols=True, keep_osymbols=True)
+        # morph = open('FST_morph_ing.txt').read()
+        # print(morph, file=compiler)
+        # morph_FST = compiler.compile()
+        # fststr.expand_other_symbols(morph_FST)
+        # initFST2 = initFST2.union(morph_FST)
+
         return initFST2
+
+    def buildAllomFST(self):
+        return
 
 
     def runtask1(self, input_str):
         FST_1 = self.buildInVocabFST()
         return fststr.apply(input_str, FST_1) 
 
-
     def runtask2(self, input_str):
         FST_2 = self.buildMorphFST()
         return fststr.apply(input_str, FST_2)
+
+    def runtask3(self, input_str):
+        FST_3 = self.buildAllomFST()
+        return fststr.apply(input_str, FST_3)
 
 
     def lemmatize(self, input_str):
@@ -103,7 +117,7 @@ l = Lemmatizer()
 
 ############################
 
-#l.buildInVocabFST()
+# l.buildInVocabFST()
 
 # lemma_test = 'aahing'
 # print("input: ", lemma_test)
@@ -111,13 +125,40 @@ l = Lemmatizer()
 
 ############################
 
-#l.buildMorphFST()
+# l.buildMorphFST()
 
-# task2_test = 'squiggs<#>'
-# print("input: ", task2_test)
-# print("output: ", l.runtask2(task2_test))
+# task2_test = 'as<#>'
+# task2_test = 'asss<#>'
 
+# task2_test = 'sqed<#>'
+# task2_test = 'sqeed<#>'
+# task2_test = 'sqeeed<#>'
+# task2_test = 'sqedk<#>'
+# task2_test = 'seqed<#>'
+# task2_test = 'seqemed<#>'
+# task2_test = 'sqeded<#>'
 
+# task2_test = 'aing<#>'
+# task2_test = 'aiking<#>'
+# task2_test = 'ainking<#>'
+# task2_test = 'aingk<#>'
+# task2_test = 'aining<#>'
+# task2_test = 'aiing<#>'
+# task2_test = 'aiiing<#>'
+# task2_test = 'aingg<#>'
+# task2_test = 'ainging<#>'
+# task2_test = 'iinnging<#>'
+task2_test = 'squigging<#>'
+print("input: ", task2_test)
+print("output: ", l.runtask2(task2_test))
+
+############################
+
+# l.buildAllomFST()
+
+# task3_test = 'squigg<^>ing<#>'
+# print("input: ", task3_test)
+# print("output: ", l.runtask3(task3_test))
 
 
 

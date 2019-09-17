@@ -11,6 +11,21 @@ class Lemmatizer():
         st = fststr.symbols_table_from_alphabet(fststr.EN_SYMB)
         return
 
+    def buildpreProcessFST(self, curr_string):
+
+        # build a FST that add <#> to the current string
+        s = '0\n'
+        for i in range(len(curr_string)):
+            s+='{} {} {} {}\n'.format(i, i+1, curr_string[i], curr_string[i])
+        s+='{} {} <epsilon> <#>\n{}\n'.format(len(curr_string), len(curr_string)+1, len(curr_string)+1)
+        # print(s)
+        st = fststr.symbols_table_from_alphabet(fststr.EN_SYMB)
+        compiler = fst.Compiler(isymbols=st, osymbols=st, keep_isymbols=True, keep_osymbols=True)
+        print(s, file=compiler)
+        FSTpre = compiler.compile()
+
+        return FSTpre
+
     # build a FST works for in_vocab_words in section 2.1, based on the dictionary file
     def buildInVocabFST(self): 
 
@@ -117,6 +132,9 @@ class Lemmatizer():
 
         return initFST3
 
+    def runPreProcessFST(self, input_str):
+        FST_pre = self.buildpreProcessFST(input_str)
+        return fststr.apply(input_str, FST_pre)
 
     def runtask1(self, input_str):
         FST_1 = self.buildInVocabFST()
@@ -146,6 +164,15 @@ class Lemmatizer():
 
 
 l = Lemmatizer()
+
+############################
+
+# l.buildpreProcessFST('hello')
+
+# preFST_test = 'hello'
+# print("input: ", preFST_test)
+# print("output: ", l.runPreProcessFST(preFST_test))
+
 
 ############################
 

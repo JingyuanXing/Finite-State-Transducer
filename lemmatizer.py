@@ -11,9 +11,9 @@ class Lemmatizer():
         st = fststr.symbols_table_from_alphabet(fststr.EN_SYMB)
         return
 
+    # build a pre processing FST that add <#> to the current string
     def buildpreProcessFST(self, curr_string):
 
-        # build a FST that add <#> to the current string
         s = '0\n'
         for i in range(len(curr_string)):
             s+='{} {} {} {}\n'.format(i, i+1, curr_string[i], curr_string[i])
@@ -26,7 +26,7 @@ class Lemmatizer():
 
         return FSTpre
 
-    # build a FST works for in_vocab_words in section 2.1, based on the dictionary file
+    # build a FST works for in_vocab_words, based on the dictionary file, for section 2.1
     def buildInVocabFST(self): 
 
         # initialize a FST1
@@ -100,6 +100,7 @@ class Lemmatizer():
 
         return initFST2
 
+    # build a FST that applies allomorphic rules, for section 2.3
     def buildAllomFST(self):
 
         # initialize a FST3
@@ -132,6 +133,18 @@ class Lemmatizer():
 
         return initFST3
 
+    # build a post processing FST, transform intermediate form to lemma+Guess
+    def buildpostProcessFST(self):
+
+        st = fststr.symbols_table_from_alphabet(fststr.EN_SYMB)
+        compiler = fst.Compiler(isymbols=st, osymbols=st, keep_isymbols=True, keep_osymbols=True)
+        post = open('FST_postprocess.txt').read()
+        print(post, file=compiler)
+        post_FST = compiler.compile()
+        fststr.expand_other_symbols(post_FST)
+
+        return post_FST
+
     def runPreProcessFST(self, input_str):
         FST_pre = self.buildpreProcessFST(input_str)
         return fststr.apply(input_str, FST_pre)
@@ -147,6 +160,10 @@ class Lemmatizer():
     def runtask3(self, input_str):
         FST_3 = self.buildAllomFST()
         return fststr.apply(input_str, FST_3)
+
+    def runPostProcessFST(self, input_str):
+        FST_post = self.buildpostProcessFST()
+        return fststr.apply(input_str, FST_post)
 
 
     def lemmatize(self, input_str):
@@ -165,6 +182,7 @@ class Lemmatizer():
 
 l = Lemmatizer()
 
+######## TEST CASES ########
 ############################
 
 # l.buildpreProcessFST('hello')
@@ -244,6 +262,13 @@ l = Lemmatizer()
 # print("output: ", l.runtask3(task3_test))
 
 
+############################
+
+# l.buildpostProcessFST('fox<^>es<#>')
+
+# postFST_test = 'run<^>ing<#>'
+# print("input: ", postFST_test)
+# print("output: ", l.runPostProcessFST(postFST_test))
 
 
 

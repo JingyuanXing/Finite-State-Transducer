@@ -115,21 +115,21 @@ class Lemmatizer():
         allom_files = [filename for filename in os.listdir('.') if filename.startswith("FST_allom_")]
         # print(allom_files)
         # compile txt files into FST, and union them into initFST3
-        # for f in allom_files:
-        #     compiler = fst.Compiler(isymbols=st, osymbols=st, keep_isymbols=True, keep_osymbols=True)
-        #     allom = open(f).read()
-        #     print(allom, file=compiler)
-        #     allom_FST = compiler.compile()
-        #     fststr.expand_other_symbols(allom_FST)
-        #     initFST3 = initFST3.union(allom_FST)
+        for f in allom_files:
+            compiler = fst.Compiler(isymbols=st, osymbols=st, keep_isymbols=True, keep_osymbols=True)
+            allom = open(f).read()
+            print(allom, file=compiler)
+            allom_FST = compiler.compile()
+            fststr.expand_other_symbols(allom_FST)
+            initFST3 = initFST3.union(allom_FST)
 
         # Run indivdual FST file, for debugging purposes:
-        compiler = fst.Compiler(isymbols=st, osymbols=st, keep_isymbols=True, keep_osymbols=True)
-        allom = open('FST_allom_consonants.txt').read()
-        print(allom, file=compiler)
-        allom_FST = compiler.compile()
-        fststr.expand_other_symbols(allom_FST)
-        initFST3 = initFST3.union(allom_FST)
+        # compiler = fst.Compiler(isymbols=st, osymbols=st, keep_isymbols=True, keep_osymbols=True)
+        # allom = open('FST_allom_EInsertion.txt').read()
+        # print(allom, file=compiler)
+        # allom_FST = compiler.compile()
+        # fststr.expand_other_symbols(allom_FST)
+        # initFST3 = initFST3.union(allom_FST)
 
         return initFST3
 
@@ -257,7 +257,7 @@ l = Lemmatizer()
 # task3_test = 'triiii<^>s<#>'
 # task3_test = 'trieee<^>s<#>'
 
-# consonants, didn't test yet
+### consonants ###
 # task3_test = 'squigg<^>ing<#>'
 # task3_test = 'squikigg<^>ed<#>'
 # task3_test = 'squikbcixx<^>ing<#>'

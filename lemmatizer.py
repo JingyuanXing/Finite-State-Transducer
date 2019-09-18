@@ -2,7 +2,7 @@
 from fststr import fststr
 import pywrapfst as fst
 import os
-
+from copy import deepcopy
 
 class Lemmatizer():
 
@@ -23,6 +23,7 @@ class Lemmatizer():
         compiler = fst.Compiler(isymbols=st, osymbols=st, keep_isymbols=True, keep_osymbols=True)
         print(s, file=compiler)
         FSTpre = compiler.compile()
+        fststr.expand_other_symbols(FSTpre)
 
         return FSTpre
 
@@ -58,11 +59,12 @@ class Lemmatizer():
                     s+='{} {} {} <epsilon>\n'.format(i,i+1,lineList[1][i])
             s+='{} {} <#> <epsilon>\n'.format(len(lineList[1]),len(lineList[1])+1)
             s+='{} {} <epsilon> +Known\n{}\n'.format(len(lineList[1])+1,len(lineList[1])+2, len(lineList[1])+2)
-            print(s)
+            # print(s)
             # now union current FST into the initFST1
             compiler = fst.Compiler(isymbols=st, osymbols=st, keep_isymbols=True, keep_osymbols=True)
             print(s, file=compiler)
             currFST = compiler.compile()
+            fststr.expand_other_symbols(currFST)
             initFST1 = initFST1.union(currFST)
 
         return initFST1
@@ -166,17 +168,34 @@ class Lemmatizer():
         return fststr.apply(input_str, FST_post)
 
 
+    def buildFinalFST(self, input_str):
+        FST_pre = self.buildpreProcessFST(input_str)
+        FST_1 = self.buildInVocabFST()
+        FST_2 = self.buildMorphFST()
+        FST_3 = self.buildAllomFST()
+        FST_post = self.buildpostProcessFST()
+        # FST_pre_1 = fst.compose(FST_pre.arcsort(sort_type="olabel"), FST_1.arcsort(sort_type="ilabel") )
+        
+        FST_2_3 = fst.compose(FST_2.arcsort(sort_type="olabel"), FST_3.arcsort(sort_type="ilabel") )
+        FST_23_post = fst.compose(FST_2_3.arcsort(sort_type="olabel"), FST_post.arcsort(sort_type="ilabel") )
+        FST_whole = FST_1.union(FST_23_post)
+        FST_final = fst.compose(FST_pre.arcsort(sort_type="olabel"), FST_whole.arcsort(sort_type="ilabel") )
+        return FST_final
+
     def lemmatize(self, input_str):
         # input ex. giving<#>
         # output ex. give+Known or give+Guess
         ##########################################
-        return
+        FST_final = self.buildFinalFST(input_str)
+        return fststr.apply(input_str, FST_final)
 
     def delemmatize(self, input_lemma):
         # input ex. give+Guess
         # output ex. a set of ”give”, ”giving”, ”gived”, ”gives”, ”giveing”, ”giveen”, and ”giveed”
         ##########################################
-        return
+        FST_final = self.buildFinalFST(input_lemma)
+        FST_final_inverted = deepcopy(FST_final).invert()
+        return set(fststr.apply(input_lemma, FST_final_inverted))
 
 
 
@@ -196,9 +215,9 @@ l = Lemmatizer()
 
 # l.buildInVocabFST()
 
-# lemma_test = 'aahing<#>'
-# print("input: ", lemma_test)
-# print("output: ", l.runtask1(lemma_test))
+# task1_test = 'aahing<#>'
+# print("input: ", task1_test)
+# print("output: ", l.runtask1(task1_test))
 
 ############################
 
@@ -239,6 +258,7 @@ l = Lemmatizer()
 
 ### e insertion ###
 # task3_test = 'fox<^>s<#>'
+# task3_test = 'watch<^>s<#>'
 
 ### e deletion ###
 # task3_test = 'make<^>ing<#>'
@@ -272,6 +292,18 @@ l = Lemmatizer()
 # postFST_test = 'run<^>ing<#>'
 # print("input: ", postFST_test)
 # print("output: ", l.runPostProcessFST(postFST_test))
+
+############################
+
+lemma_test = 'freerunning'
+print("input: ", lemma_test)
+print("output: ", l.lemmatize(lemma_test))
+
+print("\n\n")
+
+lemma_test2 = 'give+Guess'
+print("input: ", lemma_test2)
+print("output: ", l.delemmatize(lemma_test2))
 
 
 

@@ -127,7 +127,7 @@ class Lemmatizer():
 
         # Run indivdual FST file, for debugging purposes:
         # compiler = fst.Compiler(isymbols=st, osymbols=st, keep_isymbols=True, keep_osymbols=True)
-        # allom = open('FST_allom_EInsertion.txt').read()
+        # allom = open('FST_allom_EInsertion_shch.txt').read()
         # print(allom, file=compiler)
         # allom_FST = compiler.compile()
         # fststr.expand_other_symbols(allom_FST)
@@ -195,6 +195,7 @@ class Lemmatizer():
         ##########################################
         FST_final = self.buildFinalFST(input_lemma)
         FST_final_inverted = deepcopy(FST_final).invert()
+        print(FST_final_inverted.input_symbols())
         return set(fststr.apply(input_lemma, FST_final_inverted))
 
 
@@ -202,6 +203,12 @@ class Lemmatizer():
 l = Lemmatizer()
 
 ######## TEST CASES ########
+
+test = 'watches'
+print("input: ", test)
+print("output: ", l.lemmatize(test))
+
+
 ############################
 
 # l.buildpreProcessFST('hello')
@@ -295,15 +302,26 @@ l = Lemmatizer()
 
 ############################
 
-lemma_test = 'freerunning'
-print("input: ", lemma_test)
-print("output: ", l.lemmatize(lemma_test))
+# lemma_test = 'freerunning'
+# print("input: ", lemma_test)
+# print("output: ", l.lemmatize(lemma_test))
 
-print("\n\n")
+# print("\n\n")
 
-lemma_test2 = 'give+Guess'
-print("input: ", lemma_test2)
-print("output: ", l.delemmatize(lemma_test2))
+# lemma_test2 = 'give'
+# print("input: ", lemma_test2)
+# print("output: ", l.delemmatize(lemma_test2))
+
+
+
+
+
+
+
+
+
+
+
 
 
 

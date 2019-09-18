@@ -125,7 +125,7 @@ class Lemmatizer():
 
         # Run indivdual FST file, for debugging purposes:
         compiler = fst.Compiler(isymbols=st, osymbols=st, keep_isymbols=True, keep_osymbols=True)
-        allom = open('FST_allom_yReplacement.txt').read()
+        allom = open('FST_allom_consonants.txt').read()
         print(allom, file=compiler)
         allom_FST = compiler.compile()
         fststr.expand_other_symbols(allom_FST)
@@ -207,6 +207,7 @@ l = Lemmatizer()
 ### -s ###
 # task2_test = 'as<#>'
 # task2_test = 'asss<#>'
+# task2_test = 'ss<#>'
 
 ### -ed, -en ###
 # task2_test = 'sqed<#>'
@@ -258,6 +259,8 @@ l = Lemmatizer()
 
 # consonants, didn't test yet
 # task3_test = 'squigg<^>ing<#>'
+# task3_test = 'squikigg<^>ed<#>'
+# task3_test = 'squikbcixx<^>ing<#>'
 # print("input: ", task3_test)
 # print("output: ", l.runtask3(task3_test))
 

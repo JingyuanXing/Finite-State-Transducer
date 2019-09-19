@@ -1,0 +1,8 @@
+0
+0 0 <other> <other>
+0 0 <#> <#>
+0 1 <^> <epsilon>
+1 1 <other> <epsilon>
+1 1 <#> <epsilon>
+1 2 <epsilon> +Guess
+2

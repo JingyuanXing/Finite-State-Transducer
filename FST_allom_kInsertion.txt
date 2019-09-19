@@ -1,15 +1,22 @@
-  
-0 0 <other> <other>
-0 0 <^> <^>
 0
+0 0 <other> <other>
+0 0 <#> <#>
 0 1 c c
-1 0 <other> <other>
-1 0 <^> <^>
-1 2 <epsilon> k
+1 1 c c
+1 2 k <epsilon>
 2 3 <^> <^>
-3 4 e e
-4 5 d d
-5
-3 6 i i
-6 7 n n
-7 5 g g
+3 4 i i
+4 5 n n
+5 6 g g
+6 7 <#> <#>
+3 8 e e
+8 9 d d
+9 7 <#> <#>
+7
+0 10 c c
+10 0 <other> <other>
+10 10 c c
+10 11 k k
+11 10 c c
+11 0 <other> <other>
+11 1 c c

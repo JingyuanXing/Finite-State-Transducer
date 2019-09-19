@@ -143,17 +143,38 @@ class Lemmatizer():
 
         return initFST3
 
-    # build a post processing FST, transform intermediate form to lemma+Guess
+    # build a post processing FST, transform intermediate form to lemma+Guess, don't forget the without <^> case!!
     def buildpostProcessFST(self):
 
+        # initialize a FSTpost
         st = fststr.symbols_table_from_alphabet(fststr.EN_SYMB)
         compiler = fst.Compiler(isymbols=st, osymbols=st, keep_isymbols=True, keep_osymbols=True)
-        post = open('FST_postprocess.txt').read()
-        print(post, file=compiler)
-        post_FST = compiler.compile()
-        fststr.expand_other_symbols(post_FST)
+        initposts = '0\n'
+        print(initposts, file=compiler)
+        initFSTpost = compiler.compile()
+        fststr.expand_other_symbols(initFSTpost)
 
-        return post_FST
+        # read post FST txt files
+        post_files = [filename for filename in os.listdir('.') if filename.startswith("FST_post_")]
+        # print(allom_files)
+        # compile txt files into FST, and union them into initFST3
+        for f in post_files:
+            compiler = fst.Compiler(isymbols=st, osymbols=st, keep_isymbols=True, keep_osymbols=True)
+            post = open(f).read()
+            print(post, file=compiler)
+            post_FST = compiler.compile()
+            fststr.expand_other_symbols(post_FST)
+            initFSTpost = initFSTpost.union(post_FST)
+
+        # Last FST, clear out any word ends with <#>, output words ends with +Guess and +Known
+        compiler = fst.Compiler(isymbols=st, osymbols=st, keep_isymbols=True, keep_osymbols=True)
+        clear = open('FST_finalclearance.txt').read()
+        print(clear, file=compiler)
+        clear_FST = compiler.compile()
+        fststr.expand_other_symbols(clear_FST)
+        lastFST = fst.compose(initFSTpost.arcsort(sort_type="olabel"), clear_FST.arcsort(sort_type="ilabel") )
+
+        return lastFST
 
     def runPreProcessFST(self, input_str):
         FST_pre = self.buildpreProcessFST(input_str)
@@ -308,7 +329,7 @@ l = Lemmatizer()
 
 ############################
 
-# lemma_test = 'making'
+# lemma_test = 'squigging'
 # print("input: ", lemma_test)
 # print("output: ", l.lemmatize(lemma_test))
 
@@ -317,9 +338,6 @@ l = Lemmatizer()
 # lemma_test2 = 'give+Guess'
 # print("input: ", lemma_test2)
 # print("output: ", l.delemmatize(lemma_test2))
-
-
-
 
 
 

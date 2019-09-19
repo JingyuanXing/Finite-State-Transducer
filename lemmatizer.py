@@ -144,7 +144,7 @@ class Lemmatizer():
         return initFST3
 
     # build a post processing FST, transform intermediate form to lemma+Guess, don't forget the without <^> case!!
-    def buildpostProcessFST(self):
+    def buildpostProcessFST(self, input_str):
 
         # initialize a FSTpost
         st = fststr.symbols_table_from_alphabet(fststr.EN_SYMB)
@@ -157,7 +157,7 @@ class Lemmatizer():
         # read post FST txt files
         post_files = [filename for filename in os.listdir('.') if filename.startswith("FST_post_")]
         # print(allom_files)
-        # compile txt files into FST, and union them into initFST3
+        # compile txt files into FST, and union them into initFSTpost
         for f in post_files:
             compiler = fst.Compiler(isymbols=st, osymbols=st, keep_isymbols=True, keep_osymbols=True)
             post = open(f).read()
@@ -165,8 +165,24 @@ class Lemmatizer():
             post_FST = compiler.compile()
             fststr.expand_other_symbols(post_FST)
             initFSTpost = initFSTpost.union(post_FST)
+            #print("checkpoint: ", fststr.apply(input_str, initFSTpost), '\n')
 
-        # Last FST, clear out any word ends with <#>, output words ends with +Guess and +Known
+        # print("checkpoint: ", fststr.apply(input_str, initFSTpost))
+
+        # FST that take care of input is original form
+        s = ''
+        # loop through the character parts of the input
+        for i in range(len(input_str)):
+            s+='{} {} {} {}\n'.format(i, i+1, input_str[i], input_str[i])
+        # take care of <#> in the end, change it to +Guess
+        s+='{} {} <#> +Guess\n{}\n'.format(len(input_str), len(input_str)+1, len(input_str)+1)
+        compiler = fst.Compiler(isymbols=st, osymbols=st, keep_isymbols=True, keep_osymbols=True)
+        print(s, file=compiler)
+        original_case_FST = compiler.compile()
+        fststr.expand_other_symbols(original_case_FST)
+        initFSTpost = initFSTpost.union(original_case_FST)
+
+        # # Last FST, clear out any word ends with <#>, output words ends with +Guess and +Known
         compiler = fst.Compiler(isymbols=st, osymbols=st, keep_isymbols=True, keep_osymbols=True)
         clear = open('FST_finalclearance.txt').read()
         print(clear, file=compiler)
@@ -192,6 +208,12 @@ class Lemmatizer():
         FST_3 = self.buildAllomFST()
         return fststr.apply(input_str, FST_3)
 
+    def runtask23(self, input_str):
+        FST_2 = self.buildMorphFST()
+        FST_3 = self.buildAllomFST()
+        FST_2_3 = fst.compose(FST_2.arcsort(sort_type="olabel"), FST_3.arcsort(sort_type="ilabel") )
+        return fststr.apply(input_str, FST_2_3)
+
     def runPostProcessFST(self, input_str):
         FST_post = self.buildpostProcessFST()
         return fststr.apply(input_str, FST_post)
@@ -202,7 +224,7 @@ class Lemmatizer():
         FST_1 = self.buildInVocabFST()
         FST_2 = self.buildMorphFST()
         FST_3 = self.buildAllomFST()
-        FST_post = self.buildpostProcessFST()
+        FST_post = self.buildpostProcessFST(input_str)
         # FST_pre_1 = fst.compose(FST_pre.arcsort(sort_type="olabel"), FST_1.arcsort(sort_type="ilabel") )
         
         FST_2_3 = fst.compose(FST_2.arcsort(sort_type="olabel"), FST_3.arcsort(sort_type="ilabel") )
@@ -330,6 +352,10 @@ l = Lemmatizer()
 ############################
 
 # lemma_test = 'squigging'
+# lemma_test = 'making'
+# lemma_test = 'watches'
+# lemma_test = 'ases'
+# lemma_test = 'walk'
 # print("input: ", lemma_test)
 # print("output: ", l.lemmatize(lemma_test))
 

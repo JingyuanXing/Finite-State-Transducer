@@ -1,0 +1,5 @@
+0
+0 0 <other> <other>
+0 0 +Known +Known
+0 0 +Guess +Guess
+0 1 <#> <#>

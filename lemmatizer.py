@@ -12,12 +12,20 @@ class Lemmatizer():
         return
 
     # build a pre processing FST that add <#> to the current string
-    def buildpreProcessFST(self, curr_string):
+    def buildpreProcessFST(self, curr_str):
 
         s = '0\n'
-        for i in range(len(curr_string)):
-            s+='{} {} {} {}\n'.format(i, i+1, curr_string[i], curr_string[i])
-        s+='{} {} <epsilon> <#>\n{}\n'.format(len(curr_string), len(curr_string)+1, len(curr_string)+1)
+        tracker = 0
+        for i in range(len(curr_str)):
+            if (curr_str[i] == '+'):
+                s+='{} {} {} <epsilon>\n'.format(tracker, tracker+1, curr_str[tracker:len(curr_str)])
+                tracker +=1
+                break
+            else:
+                s+='{} {} {} {}\n'.format(tracker, tracker+1, curr_str[tracker], curr_str[tracker])
+                tracker += 1
+
+        s+='{} {} <epsilon> <#>\n{}\n'.format(tracker, tracker+1, tracker+1)
         # print(s)
         st = fststr.symbols_table_from_alphabet(fststr.EN_SYMB)
         compiler = fst.Compiler(isymbols=st, osymbols=st, keep_isymbols=True, keep_osymbols=True)
@@ -196,18 +204,13 @@ class Lemmatizer():
         FST_final = self.buildFinalFST(input_lemma)
         FST_final_inverted = deepcopy(FST_final).invert()
         print(FST_final_inverted.input_symbols())
-        return set(fststr.apply(input_lemma, FST_final_inverted))
+        return fststr.apply(input_lemma, FST_final_inverted)
 
 
 
 l = Lemmatizer()
 
 ######## TEST CASES ########
-
-test = 'watches'
-print("input: ", test)
-print("output: ", l.lemmatize(test))
-
 
 ############################
 
@@ -271,6 +274,9 @@ print("output: ", l.lemmatize(test))
 # task3_test = 'make<^>ing<#>'
 
 ### k deletion ###
+# task3_test = 'panick<^>ing<#>'
+# task3_test = 'ckckckc<^>ed<#>'
+# task3_test = 'cccck<^>ed<#>'
 
 ### y replacement ###
 # task3_test = 'trie<^>s<#>'
@@ -302,23 +308,15 @@ print("output: ", l.lemmatize(test))
 
 ############################
 
-# lemma_test = 'freerunning'
+# lemma_test = 'making'
 # print("input: ", lemma_test)
 # print("output: ", l.lemmatize(lemma_test))
 
 # print("\n\n")
 
-# lemma_test2 = 'give'
+# lemma_test2 = 'give+Guess'
 # print("input: ", lemma_test2)
 # print("output: ", l.delemmatize(lemma_test2))
-
-
-
-
-
-
-
-
 
 
 

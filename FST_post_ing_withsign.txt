@@ -1,0 +1,10 @@
+0
+0 0 <other> <other>
+0 0 <#> <#>
+0 1 <^> <epsilon>
+1 2 i <epsilon>
+2 3 n <epsilon>
+3 4 g <epsilon>
+4 5 <#> <epsilon>
+5 6 <epsilon> +Guess
+6

@@ -1,8 +1,20 @@
+################################################################################
+### Author: Jingyuan Xing
+### Date: Sep 19, 2019
+### Description: Build a basic lemmatizer for English verbs us- ing OpenFST
+### Note: All the commented print statements are for debugging purposes
+################################################################################
+
 
 from fststr import fststr
 import pywrapfst as fst
 import os
 from copy import deepcopy
+
+
+################################################################################
+############################ full implementation ###############################
+################################################################################
 
 class Lemmatizer():
 
@@ -11,10 +23,9 @@ class Lemmatizer():
         st = fststr.symbols_table_from_alphabet(fststr.EN_SYMB)
         return
 
-    # build a pre processing FST that add <#> to the current string
-    def buildpreProcessFST(self, curr_str):
 
-        # print("entering buildpreProcessFST\n")
+    # build a pre processing FST that add <#> to the end of current string
+    def buildpreProcessFST(self, curr_str):
 
         s = '0\n'
         tracker = 0
@@ -37,6 +48,8 @@ class Lemmatizer():
 
         return FSTpre
 
+
+    # build a pre processing FST for last step of delemmatize, that deletes <#> and +Guess
     def buildpreProcessFST_delemmatize(self):
 
         # initialize a FSTpre
@@ -49,7 +62,7 @@ class Lemmatizer():
 
         pre_files = [filename for filename in os.listdir('.') if filename.startswith("FST_pre_")]
         # print(pre_files)
-        # compile txt files into FST, and union them into initFST2
+        # compile txt files into FST, and union them into initFSTpre
         for f in pre_files:
             compiler = fst.Compiler(isymbols=st, osymbols=st, keep_isymbols=True, keep_osymbols=True)
             pre = open(f).read()
@@ -61,10 +74,9 @@ class Lemmatizer():
 
         return initFSTpre
 
+
     # build a FST works for in_vocab_words, based on the dictionary file, for section 2.1
     def buildInVocabFST(self): 
-
-        # print("entering buildInVocabFST\n")
 
         # initialize a FST1
         st = fststr.symbols_table_from_alphabet(fststr.EN_SYMB)
@@ -105,10 +117,9 @@ class Lemmatizer():
 
         return initFST1
 
+
     # build a FST that separates out suffix -s, -ed, -en, -ing with morpheme boundaries, for section 2.2
     def buildMorphFST(self):
-
-        # print("entering buildMorphFST\n")
 
         # initialize a FST2
         st = fststr.symbols_table_from_alphabet(fststr.EN_SYMB)
@@ -140,10 +151,9 @@ class Lemmatizer():
 
         return initFST2
 
+
     # build a FST that applies allomorphic rules, for section 2.3
     def buildAllomFST(self):
-
-        # print("entering buildAllomFST\n")
 
         # initialize a FST3
         st = fststr.symbols_table_from_alphabet(fststr.EN_SYMB)
@@ -175,10 +185,9 @@ class Lemmatizer():
 
         return initFST3
 
+
     # build a post processing FST, transform intermediate form to lemma+Guess, don't forget the without <^> case!!
     def buildpostProcessFST(self, input_str):
-
-        # print("entering buildpostProcessFST\n")
 
         # initialize a FSTpost
         st = fststr.symbols_table_from_alphabet(fststr.EN_SYMB)
@@ -240,36 +249,8 @@ class Lemmatizer():
 
         return lastFST
 
-    def runPreProcessFST(self, input_str):
-        FST_pre = self.buildpreProcessFST(input_str)
-        return fststr.apply(input_str, FST_pre)
-
-    def runtask1(self, input_str):
-        FST_1 = self.buildInVocabFST()
-        return fststr.apply(input_str, FST_1) 
-
-    def runtask2(self, input_str):
-        FST_2 = self.buildMorphFST()
-        return fststr.apply(input_str, FST_2)
-
-    def runtask3(self, input_str):
-        FST_3 = self.buildAllomFST()
-        return fststr.apply(input_str, FST_3)
-
-    def runtask23(self, input_str):
-        FST_2 = self.buildMorphFST()
-        FST_3 = self.buildAllomFST()
-        FST_2_3 = fst.compose(FST_2.arcsort(sort_type="olabel"), FST_3.arcsort(sort_type="ilabel") )
-        return fststr.apply(input_str, FST_2_3)
-
-    def runPostProcessFST(self, input_str):
-        FST_post = self.buildpostProcessFST()
-        return fststr.apply(input_str, FST_post)
-
 
     def buildFinalFST(self, input_str):
-
-        # print("entering buildFinalFST\n")
 
         FST_pre = self.buildpreProcessFST(input_str)
         # print("test pre inv ouput: ", fststr.apply('as<#>', deepcopy(FST_pre).invert()), '\n')
@@ -281,7 +262,6 @@ class Lemmatizer():
         # print("test 3 inv output: ", fststr.apply('as<#>', deepcopy(FST_3).invert()), '\n')
         FST_post = self.buildpostProcessFST(input_str)
         # print("test post inv output: ", fststr.apply('a+Guess', deepcopy(FST_post).invert()), '\n')
-        # FST_pre_1 = fst.compose(FST_pre.arcsort(sort_type="olabel"), FST_1.arcsort(sort_type="ilabel") )
         
         FST_2_3 = fst.compose(FST_2.arcsort(sort_type="olabel"), FST_3.arcsort(sort_type="ilabel") )
         FST_23_post = fst.compose(FST_2_3.arcsort(sort_type="olabel"), FST_post.arcsort(sort_type="ilabel") )
@@ -289,18 +269,18 @@ class Lemmatizer():
         FST_final = fst.compose(FST_pre.arcsort(sort_type="olabel"), FST_whole.arcsort(sort_type="ilabel") )
         return FST_final
 
-
+    # The lemmatize function:
+    # input ex. giving<#>
+    # output ex. give+Known or give+Guess
     def lemmatize(self, input_str):
-        # input ex. giving<#>
-        # output ex. give+Known or give+Guess
-        ##########################################
+
         FST_final = self.buildFinalFST(input_str)
         return set(fststr.apply(input_str, FST_final))
 
+    # The delemmatize function:
+    # input ex. give+Guess
+    # output ex. a set of ”give”, ”giving”, ”gived”, ”gives”, ”giveing”, ”giveen”, and ”giveed”
     def delemmatize(self, input_str):
-        # input ex. give+Guess
-        # output ex. a set of ”give”, ”giving”, ”gived”, ”gives”, ”giveing”, ”giveen”, and ”giveed”
-        ##########################################
 
         # invert post FST
         FST_post = self.buildpostProcessFST(input_str)
@@ -329,16 +309,49 @@ class Lemmatizer():
         # print("test here pre inv: ", fststr.apply('aing<#>', FST_pre_inv), '\n')
         FST_unionInOut_pre = fst.compose(FST_in_union_out_inv.arcsort(sort_type="olabel"), FST_pre_inv.arcsort(sort_type="ilabel") )
 
-        # FST_final = self.buildFinalFST(input_lemma)
-        # FST_final_inverted = deepcopy(FST_final).invert()
-        # print(FST_final_inverted.input_symbols())
         return set(fststr.apply(input_str, FST_unionInOut_pre))
 
+
+################################################################################
+################### run individual FST, for debugging puposes ##################
+################################################################################
+
+
+    def runPreProcessFST(self, input_str):
+        FST_pre = self.buildpreProcessFST(input_str)
+        return fststr.apply(input_str, FST_pre)
+
+    def runtask1(self, input_str):
+        FST_1 = self.buildInVocabFST()
+        return fststr.apply(input_str, FST_1) 
+
+    def runtask2(self, input_str):
+        FST_2 = self.buildMorphFST()
+        return fststr.apply(input_str, FST_2)
+
+    def runtask3(self, input_str):
+        FST_3 = self.buildAllomFST()
+        return fststr.apply(input_str, FST_3)
+
+    def runtask23(self, input_str):
+        FST_2 = self.buildMorphFST()
+        FST_3 = self.buildAllomFST()
+        FST_2_3 = fst.compose(FST_2.arcsort(sort_type="olabel"), FST_3.arcsort(sort_type="ilabel") )
+        return fststr.apply(input_str, FST_2_3)
+
+    def runPostProcessFST(self, input_str):
+        FST_post = self.buildpostProcessFST()
+        return fststr.apply(input_str, FST_post)
+
+
+
+################################################################################
+################################# test cases ###################################
+################################################################################
 
 
 l = Lemmatizer()
 
-######## TEST CASES ########
 
 ############################
 
@@ -436,6 +449,8 @@ l = Lemmatizer()
 
 ############################
 
+# l.lemmatize('watches')
+
 # lemma_test = 'squigging'
 # lemma_test = 'making'
 # lemma_test = 'watches'
@@ -446,16 +461,84 @@ l = Lemmatizer()
 # print("input: ", lemma_test)
 # print("output: ", l.lemmatize(lemma_test))
 
-# print("\n\n")
+############################
+
+# l.delemmatize('give+Guess')
 
 # lemma_test2 = 'give+Guess'
 # lemma_test2 = 'a+Guess'
 # print("input: ", lemma_test2)
 # print("output: ", l.delemmatize(lemma_test2))
 
+############################
+###### Two Unhandled Cases #####
+
+###### Delemmatizing  out of vocabulary
+
+# Input:         give+Guess 
+# Your output:  {'giveing', 'gived', 'giveen', 'givees', 'giving', 'giveed', 'give', 'gives'} 
+# Model Output: {'giveing', 'gived', 'giveen', 'giving', 'giveed', 'give', 'gives'}
+# Input:         pry+Guess 
+# Your output:  {'pryes', 'pries', 'pryen', 'pryed', 'pried', 'pry', 'prying', 'prys'} 
+# Model Output: {'pries', 'pryen', 'pryed', 'pried', 'pry', 'prying', 'prys'}
+# Input:         lake+Guess 
+# Your output:  {'lake', 'lakes', 'lakees', 'lakeing', 'lakeed', 'lakeen', 'laked', 'laking'} 
+# Model Output: {'lake', 'lakes', 'lakeing', 'lakeed', 'lakeen', 'laked', 'laking'}
+# Input:         a+Guess 
+# Your output:  {'aen', 'as', 'aing', 'a', 'aed', 'aes'} 
+# Model Output: {'aen', 'aed', 'as', 'aing', 'a'}
+# Input:         b+Guess 
+# Your output:  {'bes', 'bs', 'bing', 'bed', 'ben', 'b'} 
+# Model Output: {'ben', 'bs', 'bing', 'bed', 'b'}
+# Input:         be+Guess 
+# Your output:  {'been', 'be', 'bes', 'bing', 'bed', 'bees', 'being', 'beed'} 
+# Model Output: {'been', 'be', 'bes', 'bing', 'bed', 'being', 'beed'}
+# Input:         by+Guess 
+# Your output:  {'bied', 'bies', 'by', 'byen', 'bys', 'byed', 'bying', 'byes'} 
+# Model Output: {'bied', 'bies', 'by', 'byen', 'bys', 'byed', 'bying'}
+# Input:         run+Guess 
+# Your output:  {'runen', 'run', 'running', 'runed', 'runing', 'runned', 'runs', 'runes'} 
+# Model Output: {'runen', 'run', 'running', 'runed', 'runing', 'runned', 'runs'}
+# Input:         babab+Guess 
+# Your output:  {'bababen', 'bababes', 'bababs', 'bababed', 'babab', 'bababing', 'bababbing', 'bababbed'} 
+# Model Output: {'bababen', 'bababs', 'bababed', 'babab', 'bababing', 'bababbing', 'bababbed'}
+# Input:         cccbe+Guess 
+# Your output:  {'cccbeen', 'cccbees', 'cccbes', 'cccbing', 'cccbe', 'cccbeing', 'cccbed', 'cccbeed'} 
+# Model Output: {'cccbeen', 'cccbes', 'cccbed', 'cccbing', 'cccbe', 'cccbeing', 'cccbeed'}
+# Input:         cccby+Guess 
+# Your output:  {'cccbied', 'cccbying', 'cccby', 'cccbyen', 'cccbys', 'cccbies', 'cccbyed', 'cccbyes'} 
+# Model Output: {'cccbied', 'cccbying', 'cccbyen', 'cccby', 'cccbys', 'cccbies', 'cccbyed'}
+# Input:         cccac+Guess 
+# Your output:  {'cccaccing', 'cccaces', 'cccacing', 'cccacked', 'cccaced', 'cccacen', 'cccacced', 'cccac', 'cccacking', 'cccacs'} 
+# Model Output: {'cccaccing', 'cccacing', 'cccacked', 'cccaced', 'cccacen', 'cccacced', 'cccac', 'cccacking', 'cccacs'}
+# Input:         cccac+Guess 
+# Your output:  {'cccaccing', 'cccaces', 'cccacing', 'cccacked', 'cccaced', 'cccacen', 'cccacced', 'cccac', 'cccacking', 'cccacs'} 
+# Model Output: {'cccaccing', 'cccacing', 'cccacked', 'cccaced', 'cccacen', 'cccacced', 'cccac', 'cccacking', 'cccacs'}
+# Input:         longlonglonglonglonglongverb+Guess 
+# Your output:  {'longlonglonglonglonglongverbs', 'longlonglonglonglonglongverb', 'longlonglonglonglonglongverbed', 'longlonglonglonglonglongverbes', 'longlonglonglonglonglongverben', 'longlonglonglonglonglongverbing'} 
+# Model Output: {'longlonglonglonglonglongverb', 'longlonglonglonglonglongverbed', 'longlonglonglonglonglongverben', 'longlonglonglonglonglongverbing', 'longlonglonglonglonglongverbs'}
+# Input:         nlp+Guess 
+# Your output:  {'nlpen', 'nlps', 'nlp', 'nlping', 'nlpes', 'nlped'} 
+# Model Output: {'nlpen', 'nlp', 'nlping', 'nlped', 'nlps'}
 
 
+###### Lemmatizing  out of vocabulary
 
+# Input:         fuss 
+# Your output:  {'fuse+Guess', 'fus+Guess'} 
+# Model Output: {'fuss+Guess'}
+# Input:         badges 
+# Your output:  {'badge+Guess', 'badg+Guess'} 
+# Model Output: {'badge+Guess'}
+# Input:         fries 
+# Your output:  {'frie+Guess', 'fry+Guess', 'fri+Guess'} 
+# Model Output: {'frie+Guess', 'fry+Guess'}
+# Input:         bies 
+# Your output:  {'bie+Guess', 'bi+Guess', 'by+Guess'} 
+# Model Output: {'bie+Guess', 'by+Guess'}
+# Input:         cccbies 
+# Your output:  {'cccby+Guess', 'cccbie+Guess', 'cccbi+Guess'} 
+# Model Output: {'cccby+Guess', 'cccbie+Guess'}
 
 
 

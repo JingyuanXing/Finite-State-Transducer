@@ -14,12 +14,14 @@ class Lemmatizer():
     # build a pre processing FST that add <#> to the current string
     def buildpreProcessFST(self, curr_str):
 
+        # print("entering buildpreProcessFST\n")
+
         s = '0\n'
         tracker = 0
         for i in range(len(curr_str)):
-            if (curr_str[i] == '+'):
-                s+='{} {} {} <epsilon>\n'.format(tracker, tracker+1, curr_str[tracker:len(curr_str)])
-                tracker +=1
+            if (curr_str[i] == '+') or (curr_str[i] == '<'):
+                s+='{} {} <epsilon> {}\n'.format(tracker, tracker+1, curr_str[tracker:len(curr_str)])
+                # tracker +=1
                 break
             else:
                 s+='{} {} {} {}\n'.format(tracker, tracker+1, curr_str[tracker], curr_str[tracker])
@@ -35,8 +37,34 @@ class Lemmatizer():
 
         return FSTpre
 
+    def buildpreProcessFST_delemmatize(self):
+
+        # initialize a FSTpre
+        st = fststr.symbols_table_from_alphabet(fststr.EN_SYMB)
+        compiler = fst.Compiler(isymbols=st, osymbols=st, keep_isymbols=True, keep_osymbols=True)
+        initpres = '1\n'
+        print(initpres, file=compiler)
+        initFSTpre = compiler.compile()
+        fststr.expand_other_symbols(initFSTpre)
+
+        pre_files = [filename for filename in os.listdir('.') if filename.startswith("FST_pre_")]
+        # print(pre_files)
+        # compile txt files into FST, and union them into initFST2
+        for f in pre_files:
+            compiler = fst.Compiler(isymbols=st, osymbols=st, keep_isymbols=True, keep_osymbols=True)
+            pre = open(f).read()
+            print(pre, file=compiler)
+            pre_FST = compiler.compile()
+            fststr.expand_other_symbols(pre_FST)
+            initFSTpre = initFSTpre.union(pre_FST)
+
+
+        return initFSTpre
+
     # build a FST works for in_vocab_words, based on the dictionary file, for section 2.1
     def buildInVocabFST(self): 
+
+        # print("entering buildInVocabFST\n")
 
         # initialize a FST1
         st = fststr.symbols_table_from_alphabet(fststr.EN_SYMB)
@@ -80,6 +108,8 @@ class Lemmatizer():
     # build a FST that separates out suffix -s, -ed, -en, -ing with morpheme boundaries, for section 2.2
     def buildMorphFST(self):
 
+        # print("entering buildMorphFST\n")
+
         # initialize a FST2
         st = fststr.symbols_table_from_alphabet(fststr.EN_SYMB)
         compiler = fst.Compiler(isymbols=st, osymbols=st, keep_isymbols=True, keep_osymbols=True)
@@ -112,6 +142,8 @@ class Lemmatizer():
 
     # build a FST that applies allomorphic rules, for section 2.3
     def buildAllomFST(self):
+
+        # print("entering buildAllomFST\n")
 
         # initialize a FST3
         st = fststr.symbols_table_from_alphabet(fststr.EN_SYMB)
@@ -146,6 +178,8 @@ class Lemmatizer():
     # build a post processing FST, transform intermediate form to lemma+Guess, don't forget the without <^> case!!
     def buildpostProcessFST(self, input_str):
 
+        # print("entering buildpostProcessFST\n")
+
         # initialize a FSTpost
         st = fststr.symbols_table_from_alphabet(fststr.EN_SYMB)
         compiler = fst.Compiler(isymbols=st, osymbols=st, keep_isymbols=True, keep_osymbols=True)
@@ -156,7 +190,7 @@ class Lemmatizer():
 
         # read post FST txt files
         post_files = [filename for filename in os.listdir('.') if filename.startswith("FST_post_")]
-        # print(allom_files)
+        # print(post_files)
         # compile txt files into FST, and union them into initFSTpost
         for f in post_files:
             compiler = fst.Compiler(isymbols=st, osymbols=st, keep_isymbols=True, keep_osymbols=True)
@@ -167,15 +201,29 @@ class Lemmatizer():
             initFSTpost = initFSTpost.union(post_FST)
             #print("checkpoint: ", fststr.apply(input_str, initFSTpost), '\n')
 
-        # print("checkpoint: ", fststr.apply(input_str, initFSTpost))
+        # Run indivdual FST file, for debugging purposes:
+        # compiler = fst.Compiler(isymbols=st, osymbols=st, keep_isymbols=True, keep_osymbols=True)
+        # post = open('FST_post_withsign.txt').read()
+        # print(post, file=compiler)
+        # post_FST = compiler.compile()
+        # fststr.expand_other_symbols(post_FST)
+        # initFSTpost = initFSTpost.union(post_FST)
+
 
         # FST that take care of input is original form
         s = ''
         # loop through the character parts of the input
+        tracker = 0
         for i in range(len(input_str)):
-            s+='{} {} {} {}\n'.format(i, i+1, input_str[i], input_str[i])
+            if (input_str[i] == '+'):
+                s+='{} {} <#> +Guess\n{}\n'.format(tracker, tracker+1, tracker+1)
+                tracker += 1
+                break
+            else:
+                s+='{} {} {} {}\n'.format(tracker, tracker+1, input_str[tracker], input_str[tracker])
+                tracker += 1
         # take care of <#> in the end, change it to +Guess
-        s+='{} {} <#> +Guess\n{}\n'.format(len(input_str), len(input_str)+1, len(input_str)+1)
+        s+='{} {} <#> +Guess\n{}\n'.format(tracker, tracker+1, tracker+1)
         compiler = fst.Compiler(isymbols=st, osymbols=st, keep_isymbols=True, keep_osymbols=True)
         print(s, file=compiler)
         original_case_FST = compiler.compile()
@@ -220,11 +268,19 @@ class Lemmatizer():
 
 
     def buildFinalFST(self, input_str):
+
+        # print("entering buildFinalFST\n")
+
         FST_pre = self.buildpreProcessFST(input_str)
+        # print("test pre inv ouput: ", fststr.apply('as<#>', deepcopy(FST_pre).invert()), '\n')
         FST_1 = self.buildInVocabFST()
+        # print("test 1 inv ouput: ", fststr.apply('a+Guess', deepcopy(FST_1).invert()), '\n')
         FST_2 = self.buildMorphFST()
+        # print("test 2 inv ouput: ", fststr.apply('a<^>s<#>', deepcopy(FST_2).invert()), '\n')
         FST_3 = self.buildAllomFST()
+        # print("test 3 inv output: ", fststr.apply('as<#>', deepcopy(FST_3).invert()), '\n')
         FST_post = self.buildpostProcessFST(input_str)
+        # print("test post inv output: ", fststr.apply('a+Guess', deepcopy(FST_post).invert()), '\n')
         # FST_pre_1 = fst.compose(FST_pre.arcsort(sort_type="olabel"), FST_1.arcsort(sort_type="ilabel") )
         
         FST_2_3 = fst.compose(FST_2.arcsort(sort_type="olabel"), FST_3.arcsort(sort_type="ilabel") )
@@ -233,21 +289,50 @@ class Lemmatizer():
         FST_final = fst.compose(FST_pre.arcsort(sort_type="olabel"), FST_whole.arcsort(sort_type="ilabel") )
         return FST_final
 
+
     def lemmatize(self, input_str):
         # input ex. giving<#>
         # output ex. give+Known or give+Guess
         ##########################################
         FST_final = self.buildFinalFST(input_str)
-        return fststr.apply(input_str, FST_final)
+        return set(fststr.apply(input_str, FST_final))
 
-    def delemmatize(self, input_lemma):
+    def delemmatize(self, input_str):
         # input ex. give+Guess
         # output ex. a set of ”give”, ”giving”, ”gived”, ”gives”, ”giveing”, ”giveen”, and ”giveed”
         ##########################################
-        FST_final = self.buildFinalFST(input_lemma)
-        FST_final_inverted = deepcopy(FST_final).invert()
-        print(FST_final_inverted.input_symbols())
-        return fststr.apply(input_lemma, FST_final_inverted)
+
+        # invert post FST
+        FST_post = self.buildpostProcessFST(input_str)
+        FST_post_inv = deepcopy(FST_post).invert()
+
+        # invert allom FST
+        FST_3 = self.buildAllomFST()
+        FST_3_inv = deepcopy(FST_3).invert()
+        # print("test here 3 inv: ", fststr.apply('as<#>', FST_3_inv), '\n')
+        FST_post_3_inv = fst.compose(FST_post_inv.arcsort(sort_type="olabel"), FST_3_inv.arcsort(sort_type="ilabel") )
+        
+        # invert morph FST
+        FST_2 = self.buildMorphFST()
+        FST_2_inv = deepcopy(FST_2).invert()
+        # print("test here 2 inv: ", fststr.apply('aes<^><#>', FST_2_inv), '\n')
+        FST_post3_2_inv = fst.compose(FST_post_3_inv.arcsort(sort_type="olabel"), FST_2_inv.arcsort(sort_type="ilabel") )
+        
+        # invert inVocab FST
+        FST_1 = self.buildInVocabFST()
+        FST_1_inv = deepcopy(FST_1).invert()
+        # print("test here 1 inv: ", fststr.apply('a+Guess', FST_1_inv), '\n')
+        FST_in_union_out_inv = FST_1_inv.union(FST_post3_2_inv)
+        
+        # preprocess FST for delemmatize
+        FST_pre_inv = self.buildpreProcessFST_delemmatize()
+        # print("test here pre inv: ", fststr.apply('aing<#>', FST_pre_inv), '\n')
+        FST_unionInOut_pre = fst.compose(FST_in_union_out_inv.arcsort(sort_type="olabel"), FST_pre_inv.arcsort(sort_type="ilabel") )
+
+        # FST_final = self.buildFinalFST(input_lemma)
+        # FST_final_inverted = deepcopy(FST_final).invert()
+        # print(FST_final_inverted.input_symbols())
+        return set(fststr.apply(input_str, FST_unionInOut_pre))
 
 
 
@@ -362,9 +447,9 @@ l = Lemmatizer()
 # print("\n\n")
 
 # lemma_test2 = 'give+Guess'
+# lemma_test2 = 'a+Guess'
 # print("input: ", lemma_test2)
 # print("output: ", l.delemmatize(lemma_test2))
-
 
 
 

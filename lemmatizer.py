@@ -441,6 +441,8 @@ l = Lemmatizer()
 # lemma_test = 'watches'
 # lemma_test = 'ases'
 # lemma_test = 'walk'
+# lemma_test = 'cccbies'
+# lemma_test = 'fries'
 # print("input: ", lemma_test)
 # print("output: ", l.lemmatize(lemma_test))
 

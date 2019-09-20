@@ -353,7 +353,7 @@ class Lemmatizer():
 l = Lemmatizer()
 
 
-############################
+################################
 
 # l.buildpreProcessFST('hello')
 
@@ -362,7 +362,7 @@ l = Lemmatizer()
 # print("output: ", l.runPreProcessFST(preFST_test))
 
 
-############################
+################################
 
 # l.buildInVocabFST()
 
@@ -370,7 +370,7 @@ l = Lemmatizer()
 # print("input: ", task1_test)
 # print("output: ", l.runtask1(task1_test))
 
-############################
+################################
 
 # l.buildMorphFST()
 
@@ -403,7 +403,7 @@ l = Lemmatizer()
 # print("input: ", task2_test)
 # print("output: ", l.runtask2(task2_test))
 
-############################
+################################
 
 # l.buildAllomFST()
 
@@ -439,7 +439,7 @@ l = Lemmatizer()
 # print("output: ", l.runtask3(task3_test))
 
 
-############################
+################################
 
 # l.buildpostProcessFST('fox<^>es<#>')
 
@@ -447,7 +447,7 @@ l = Lemmatizer()
 # print("input: ", postFST_test)
 # print("output: ", l.runPostProcessFST(postFST_test))
 
-############################
+################################
 
 # l.lemmatize('watches')
 
@@ -461,7 +461,7 @@ l = Lemmatizer()
 # print("input: ", lemma_test)
 # print("output: ", l.lemmatize(lemma_test))
 
-############################
+################################
 
 # l.delemmatize('give+Guess')
 
@@ -470,10 +470,10 @@ l = Lemmatizer()
 # print("input: ", lemma_test2)
 # print("output: ", l.delemmatize(lemma_test2))
 
-############################
+################################
 ###### Two Unhandled Cases #####
 
-###### Delemmatizing  out of vocabulary
+###### Delemmatizing  out of vocabulary ######
 
 # Input:         give+Guess 
 # Your output:  {'giveing', 'gived', 'giveen', 'givees', 'giving', 'giveed', 'give', 'gives'} 
@@ -521,8 +521,7 @@ l = Lemmatizer()
 # Your output:  {'nlpen', 'nlps', 'nlp', 'nlping', 'nlpes', 'nlped'} 
 # Model Output: {'nlpen', 'nlp', 'nlping', 'nlped', 'nlps'}
 
-
-###### Lemmatizing  out of vocabulary
+###### Lemmatizing  out of vocabulary ######
 
 # Input:         fuss 
 # Your output:  {'fuse+Guess', 'fus+Guess'} 
